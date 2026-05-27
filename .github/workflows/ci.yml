@@ -1,0 +1,48 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: tl_attendance
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: "postgresql://user:password@localhost:5432/tl_attendance?schema=public"
+      REDIS_URL: "redis://localhost:6379/0"
+      JWT_ACCESS_SECRET: "test-access-secret-minimum-32-chars"
+      JWT_REFRESH_SECRET: "test-refresh-secret-minimum-32-chars"
+      CSRF_SECRET: "test-csrf-secret-minimum-32-chars"
+      NODE_ENV: test
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: latest
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run db:migrate
+      - run: pnpm run lint
+      - run: pnpm run build
+      - run: pnpm run test
