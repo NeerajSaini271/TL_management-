@@ -7,6 +7,7 @@ import { UnauthorizedError, ConflictError, BadRequestError, NotFoundError } from
 
 export var AuthService = (function() {
   function AuthService() {}
+
   AuthService.prototype.register = async function(input) {
     var c = await pool.connect();
     try {
@@ -17,6 +18,7 @@ export var AuthService = (function() {
       return r.rows[0];
     } finally { c.release(); }
   };
+
   AuthService.prototype.login = async function(input, ip) {
     var c = await pool.connect();
     try {
@@ -32,6 +34,7 @@ export var AuthService = (function() {
       return { accessToken, refreshToken, user: { id: user.id, email: user.email, name: user.name, role: user.role } };
     } finally { c.release(); }
   };
+
   AuthService.prototype.getCurrentUser = async function(userId) {
     var c = await pool.connect();
     try {
@@ -40,6 +43,7 @@ export var AuthService = (function() {
       return r.rows[0];
     } finally { c.release(); }
   };
+
   AuthService.prototype.changePassword = async function(userId, input) {
     var c = await pool.connect();
     try {
@@ -51,9 +55,11 @@ export var AuthService = (function() {
       await c.query('UPDATE users SET password_hash = , updated_at = NOW() WHERE id = ', [hash, userId]);
     } finally { c.release(); }
   };
+
   AuthService.prototype.logout = async function(userId, rt, jti) {
     if (jti) { try { await redis.set('blacklist:access:' + jti, '1', 'EX', 900); } catch(e) {} }
   };
+
   return AuthService;
 })();
 
