@@ -9,17 +9,13 @@ import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import config from './config/index.js';
-import { connectDB, disconnectDB, getPoolStats } from './db/pool.js';
+import { connectDB, disconnectDB } from './db/pool.js';
 import { upgrade } from './db/upgrade.js';
 import { seed } from './db/seed.js';
 import { errorHandler } from './middleware/errorHandler.js';
-import { correlationId } from './middleware/correlation.js';
-import { securityConfig } from './utils/security.js';
-import { generatePostmanCollection } from './utils/postman.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { mfaRoutes } from './modules/mfa/mfa.routes.js';
 import { apiKeyRoutes } from './modules/apikeys/apikeys.routes.js';
-import { canaryRoutes } from './modules/canary/canary.routes.js';
 import { tlRoutes } from './modules/tl/tl.routes.js';
 import { attendanceRoutes } from './modules/attendance/attendance.routes.js';
 import { ratingsRoutes } from './modules/ratings/ratings.routes.js';
@@ -29,12 +25,7 @@ var __filename = fileURLToPath(import.meta.url);
 var __dirname = path.dirname(__filename);
 
 async function buildApp() {
-  var app = Fastify({
-    logger: { level: 'debug', transport: { target: 'pino-pretty' } },
-    bodyLimit: securityConfig.maxBodySize
-  });
-
-  app.addHook('onRequest', correlationId);
+  var app = Fastify({ logger: { level: 'debug', transport: { target: 'pino-pretty' } } });
   await app.register(fastifyStatic, { root: path.join(__dirname, '..', 'public'), prefix: '/' });
   await app.register(helmet, { contentSecurityPolicy: false });
   await app.register(cors, { origin: true, credentials: true });
@@ -44,22 +35,14 @@ async function buildApp() {
   await app.register(swaggerUi, { routePrefix: '/docs' });
   app.setErrorHandler(errorHandler);
 
-  // Add content type parser for empty body
-  app.addContentTypeParser('application/json', { parseAs: 'string' }, function(req: any, body: string, done: any) {
-    try { done(null, body ? JSON.parse(body) : {}); }
-    catch(e) { done(null, {}); }
-  });
-
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(mfaRoutes, { prefix: '/api/v1/mfa' });
   await app.register(apiKeyRoutes, { prefix: '/api/v1/api-keys' });
-  await app.register(canaryRoutes, { prefix: '/api/v1/canary' });
   await app.register(tlRoutes, { prefix: '/api/v1/tls' });
   await app.register(attendanceRoutes, { prefix: '/api/v1/attendance' });
   await app.register(ratingsRoutes, { prefix: '/api/v1/ratings' });
   await app.register(auditRoutes, { prefix: '/api/v1/audit' });
 
-  app.get('/api/v1/postman', async function(req: any, reply: any) { return generatePostmanCollection(); });
   app.get('/api/v1/health', async function() {
     return { status: 'ok', db: 'Neon PostgreSQL', timestamp: new Date().toISOString() };
   });
