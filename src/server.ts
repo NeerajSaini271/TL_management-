@@ -1,4 +1,7 @@
-﻿import Fastify from 'fastify';
+﻿import fastify from 'fastify';
+import fastifyStatic from '@fastify/static';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -33,7 +36,10 @@ async function buildApp() {
 
   app.addHook('onRequest', correlationId);
   await app.register(helmet, { contentSecurityPolicy: securityConfig.csp });
-  await app.register(cors, securityConfig.cors);
+  var __filename = fileURLToPath(import.meta.url);
+var __dirname = path.dirname(__filename);
+await app.register(fastifyStatic, { root: path.join(__dirname, '..', 'public'), prefix: '/' });
+await app.register(cors, securityConfig.cors);
   await app.register(csrf, { cookieOpts: { httpOnly: true, sameSite: 'strict' } });
   await app.register(rateLimit, { global: true, max: securityConfig.rateLimit.global.max, timeWindow: securityConfig.rateLimit.global.timeWindow });
   await app.register(cookie, { secret: config.CSRF_SECRET });
@@ -89,5 +95,6 @@ async function start() {
   } catch(err) { app.log.error(err); process.exit(1); }
 }
 start();
+
 
 
