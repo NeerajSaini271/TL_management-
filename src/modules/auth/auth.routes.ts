@@ -1,7 +1,7 @@
 import { authService } from './auth.service.js';
 import { validateBody } from '../../middleware/validate.js';
 import { authenticate } from '../../middleware/auth.js';
-import { registerSchema, loginSchema, changePasswordSchema, forgotPasswordSchema, resetPasswordSchema } from './auth.schema.js';
+import { registerSchema, loginSchema, changePasswordSchema } from './auth.schema.js';
 
 export async function authRoutes(app) {
   app.post('/register', { preHandler: [validateBody(registerSchema)] }, async function(req, reply) {
@@ -26,10 +26,11 @@ export async function authRoutes(app) {
     reply.send({ success: true, message: 'Password changed successfully' });
   });
 
-  app.post('/logout', { preHandler: [authenticate] }, async function(req, reply) {
-    var jti = '';
-    try { var parts = req.cookies.access_token.split('.'); jti = JSON.parse(Buffer.from(parts[1], 'base64').toString()).jti; } catch(e) {}
-    await authService.logout(req.user.id, req.cookies.refresh_token, jti);
+  app.post('/logout', {
+    preHandler: authenticate,
+    config: { rawBody: true }
+  }, async function(req, reply) {
+    await authService.logout(req.user.id);
     reply.clearCookie('access_token', { path: '/' });
     reply.clearCookie('refresh_token', { path: '/' });
     reply.send({ success: true, message: 'Logged out' });
