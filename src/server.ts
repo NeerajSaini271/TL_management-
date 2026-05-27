@@ -7,7 +7,7 @@ import csrf from '@fastify/csrf-protection';
 import swagger from '@fastify/swagger';
 import swaggerUi from '@fastify/swagger-ui';
 import config from './config/index.js';
-import { connectDB, disconnectDB } from './db/pool.js';
+import { connectDB, disconnectDB, getPoolStats } from './db/pool.js';
 import { upgrade } from './db/upgrade.js';
 import { seed } from './db/seed.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -20,6 +20,7 @@ import { tlRoutes } from './modules/tl/tl.routes.js';
 import { attendanceRoutes } from './modules/attendance/attendance.routes.js';
 import { ratingsRoutes } from './modules/ratings/ratings.routes.js';
 import { canaryRoutes } from './modules/canary/canary.routes.js';
+import { generatePostmanCollection } from './utils/postman.js';
 import { auditRoutes } from './modules/audit/audit.routes.js';
 
 async function buildApp() {
@@ -57,6 +58,8 @@ async function buildApp() {
   await app.register(canaryRoutes, { prefix: '/api/v1/canary' });
   await app.register(auditRoutes, { prefix: '/api/v1/audit' });
   
+  app.get('/api/v1/postman', async function(req: any, reply: any) { return generatePostmanCollection(); });
+
   app.get('/api/v1/health', async function() {
     return {
       status: 'ok',
@@ -86,3 +89,5 @@ async function start() {
   } catch(err) { app.log.error(err); process.exit(1); }
 }
 start();
+
+
