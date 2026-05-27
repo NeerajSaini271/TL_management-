@@ -4,55 +4,63 @@ Production-grade backend for Team Lead Management with Attendance Tracking, Rati
 
 ## Tech Stack
 - Node.js 22+, TypeScript, Fastify 5
-- PostgreSQL + Prisma ORM
-- Redis (optional for caching/blacklist)
-- JWT Auth with Argon2 password hashing
+- Neon PostgreSQL (cloud) + pg library
+- Redis (optional)
+- JWT httpOnly cookies + Argon2
 - Zod validation, Swagger docs
 
 ## Quick Start
 ` 
 pnpm install
 cp .env.example .env
-npx prisma migrate dev --name init
-npx tsx prisma/seed.ts
 pnpm dev
 ` 
 
 ## API Endpoints
 
-**Auth Module:**
-- POST /api/v1/auth/register - Register new user
-- POST /api/v1/auth/login - Login
-- GET /api/v1/auth/me - Get current user
-- PUT /api/v1/auth/change-password - Change password
-- POST /api/v1/auth/logout - Logout
+### Auth
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/v1/auth/register | Register |
+| POST | /api/v1/auth/login | Login |
+| GET | /api/v1/auth/me | Get current user |
+| PUT | /api/v1/auth/change-password | Change password |
+| POST | /api/v1/auth/logout | Logout |
 
-**TL Management:**
-- POST /api/v1/tls - Create TL (Admin/Manager)
-- GET /api/v1/tls - List all TLs
-- GET /api/v1/tls/:id - Get TL by ID
-- PUT /api/v1/tls/:id - Update TL (Admin/Manager)
-- DELETE /api/v1/tls/:id - Deactivate TL (Admin only)
+### TL Management
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /api/v1/tls | Admin/Manager | Create TL |
+| GET | /api/v1/tls | Admin/Manager | List TLs |
+| GET | /api/v1/tls/:id | Any | Get TL |
+| PUT | /api/v1/tls/:id | Admin/Manager | Update TL |
+| DELETE | /api/v1/tls/:id | Admin | Deactivate TL |
 
-**Attendance:**
-- POST /api/v1/attendance/mark - Mark daily attendance
-- GET /api/v1/attendance/my - Get attendance history
-- GET /api/v1/attendance/today - Check today status
+### Attendance
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/v1/attendance/mark | Mark attendance |
+| GET | /api/v1/attendance/my | History |
+| GET | /api/v1/attendance/today | Today status |
 
-**Ratings:**
-- POST /api/v1/ratings - Create rating (TL/Manager/Admin)
-- GET /api/v1/ratings/my - Get my ratings
+### Ratings
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| POST | /api/v1/ratings | TL/Manager/Admin | Create rating |
+| GET | /api/v1/ratings/my | Any | My ratings |
 
-**Audit Logs:**
-- GET /api/v1/audit/logs - View audit logs (Admin/Manager)
+### Audit Logs
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| GET | /api/v1/audit/logs | Admin/Manager | View logs |
 
 ## Test Accounts
-- Admin: admin@company.com / Admin@123!
+- Admin: admin@company.com / NewPass@123!
 - TL: tl@company.com / TL@123!
 - Employee: employee@company.com / Employee@123!
 
 ## Security
-Helmet, CORS, Rate Limiting, JWT httpOnly cookies, Argon2id hashing, RBAC, Zod validation, SQL injection prevention via Prisma, Audit logging.
+Helmet, CORS, Rate Limiting, JWT httpOnly, Argon2id, RBAC, Zod, SQL injection prevention, Audit logging.
 
-## API Docs
+## Docs
 http://localhost:5000/docs
