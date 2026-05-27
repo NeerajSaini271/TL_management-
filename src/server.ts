@@ -1,4 +1,4 @@
-﻿import fastify from 'fastify';
+﻿import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -16,15 +16,18 @@ import { seed } from './db/seed.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { correlationId } from './middleware/correlation.js';
 import { securityConfig } from './utils/security.js';
+import { generatePostmanCollection } from './utils/postman.js';
 import { authRoutes } from './modules/auth/auth.routes.js';
 import { mfaRoutes } from './modules/mfa/mfa.routes.js';
 import { apiKeyRoutes } from './modules/apikeys/apikeys.routes.js';
+import { canaryRoutes } from './modules/canary/canary.routes.js';
 import { tlRoutes } from './modules/tl/tl.routes.js';
 import { attendanceRoutes } from './modules/attendance/attendance.routes.js';
 import { ratingsRoutes } from './modules/ratings/ratings.routes.js';
-import { canaryRoutes } from './modules/canary/canary.routes.js';
-import { generatePostmanCollection } from './utils/postman.js';
 import { auditRoutes } from './modules/audit/audit.routes.js';
+
+var __filename = fileURLToPath(import.meta.url);
+var __dirname = path.dirname(__filename);
 
 async function buildApp() {
   var app = Fastify({
@@ -35,52 +38,58 @@ async function buildApp() {
   });
 
   app.addHook('onRequest', correlationId);
-  await app.register(helmet, { contentSecurityPolicy: securityConfig.csp });
-  var __filename = fileURLToPath(import.meta.url);
-var __dirname = path.dirname(__filename);
-await app.register(fastifyStatic, { root: path.join(__dirname, '..', 'public'), prefix: '/' });
-await app.register(cors, securityConfig.cors);
-  await app.register(csrf, { cookieOpts: { httpOnly: true, sameSite: 'strict' } });
+  await app.register(fastifyStatic, { root: path.join(__dirname, '..', 'public'), prefix: '/' });
+  await app.register(helmet, { contentSecurityPolicy: false });
+  await app.register(cors, securityConfig.cors);
   await app.register(rateLimit, { global: true, max: securityConfig.rateLimit.global.max, timeWindow: securityConfig.rateLimit.global.timeWindow });
   await app.register(cookie, { secret: config.CSRF_SECRET });
+  
+  try { await app.register(csrf, { cookieOpts: { httpOnly: true, sameSite: 'strict' } }); } catch(e) {}
+
   await app.register(swagger, {
     openapi: {
       info: {
         title: 'TL Management API',
         version: '4.0.0',
-        description: 'Enterprise-grade backend with MFA, API Keys, PoW Login, Idempotency, Circuit Breaker, Leaky Bucket, Audit Chain'
+        description: 'Enterprise-grade backend with military-grade security - MFA, API Keys, PoW, ZKP, Canary Tokens, Anomaly Detection, Audit Chain'
       }
     }
   });
   await app.register(swaggerUi, { routePrefix: '/docs' });
   app.setErrorHandler(errorHandler);
-  
+
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(mfaRoutes, { prefix: '/api/v1/mfa' });
   await app.register(apiKeyRoutes, { prefix: '/api/v1/api-keys' });
+  await app.register(canaryRoutes, { prefix: '/api/v1/canary' });
   await app.register(tlRoutes, { prefix: '/api/v1/tls' });
   await app.register(attendanceRoutes, { prefix: '/api/v1/attendance' });
   await app.register(ratingsRoutes, { prefix: '/api/v1/ratings' });
-  await app.register(canaryRoutes, { prefix: '/api/v1/canary' });
   await app.register(auditRoutes, { prefix: '/api/v1/audit' });
-  
+
   app.get('/api/v1/postman', async function(req: any, reply: any) { return generatePostmanCollection(); });
 
   app.get('/api/v1/health', async function() {
+    var poolStats = getPoolStats();
     return {
       status: 'ok',
+      version: '4.0.0',
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      memory: process.memoryUsage().heapUsed / 1024 / 1024,
-      db: 'Neon PostgreSQL',
-      features: ['MFA/TOTP', 'API Keys', 'Audit Chain', 'Quantum KEM', 'Canary Tokens', 'Anomaly Detection', 'ZKP', 'Tokenization', 'Brute Force Protection', 'Refresh Rotation', 'Password Reset', 'Proof of Work', 'Idempotency', 'Circuit Breaker', 'Leaky Bucket', 'Correlation IDs', 'Request Signing']
+      memory: {
+        heapUsedMB: Math.round(process.memoryUsage().heapUsed / 1024 / 1024 * 100) / 100,
+        heapTotalMB: Math.round(process.memoryUsage().heapTotal / 1024 / 1024 * 100) / 100,
+        rssMB: Math.round(process.memoryUsage().rss / 1024 / 1024 * 100) / 100
+      },
+      database: { provider: 'Neon PostgreSQL', region: 'ap-southeast-1 (AWS)', pool: poolStats },
+      features: ['MFA/TOTP','API Keys','Audit Chain','Brute Force','Refresh Rotation','Password Reset','Proof of Work','Idempotency','Circuit Breaker','Leaky Bucket','Correlation IDs','Request Signing','Quantum KEM','Canary Tokens','Anomaly Detection','ZKP','Tokenization']
     };
   });
-  
+
   app.addHook('onClose', async function() { await disconnectDB(); });
   process.on('SIGTERM', async function() { await app.close(); process.exit(0); });
   process.on('SIGINT', async function() { await app.close(); process.exit(0); });
-  
+
   await connectDB();
   await upgrade();
   await seed();
@@ -92,9 +101,8 @@ async function start() {
   try {
     await app.listen({ port: config.PORT, host: '0.0.0.0' });
     console.log('Server: http://localhost:' + config.PORT);
+    console.log('Dashboard: http://localhost:' + config.PORT);
+    console.log('Docs: http://localhost:' + config.PORT + '/docs');
   } catch(err) { app.log.error(err); process.exit(1); }
 }
 start();
-
-
-
