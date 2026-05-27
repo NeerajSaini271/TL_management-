@@ -1,4 +1,4 @@
-﻿generator client {
+generator client {
   provider = "prisma-client-js"
 }
 
@@ -12,63 +12,49 @@ model User {
   email         String    @unique
   passwordHash  String
   name          String
-  role          Role      @default(EMPLOYEE)
+  role          String    @default("EMPLOYEE")
   department    String?
   isActive      Boolean   @default(true)
   refreshTokens RefreshToken[]
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
   attendances   Attendance[]
   ratings       Rating[]
   auditLogs     AuditLog[]
-}
-
-enum Role {
-  ADMIN
-  MANAGER
-  TL
-  EMPLOYEE
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }
 
 model RefreshToken {
-  id        String   @id @default(uuid())
-  tokenId   String   @unique
+  id        String    @id @default(uuid())
+  tokenId   String    @unique
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
   family    String
   revokedAt DateTime?
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
 }
 
 model Attendance {
-  id        String     @id @default(uuid())
-  userId    String
-  user      User       @relation(fields: [userId], references: [id])
-  date      DateTime   @default(now())
-  status    AttendanceStatus
-  isLate    Boolean    @default(false)
-  comment   String?
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-}
-
-enum AttendanceStatus {
-  PRESENT
-  ABSENT
-  LEAVE
-  HALF_DAY
-}
-
-model Rating {
   id        String   @id @default(uuid())
   userId    String
   user      User     @relation(fields: [userId], references: [id])
-  month     String   // e.g., "2026-05"
-  score     Float
+  date      DateTime @default(now())
+  status    String
+  isLate    Boolean  @default(false)
   comment   String?
-  reviewerId String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Rating {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  month      String
+  score      Float
+  comment    String?
+  reviewerId String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model AuditLog {

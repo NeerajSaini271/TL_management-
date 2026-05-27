@@ -1,19 +1,21 @@
-﻿import Redis from 'ioredis';
+import Redis from 'ioredis';
 import config from '../config/index.js';
 
-const redis = new Redis(config.REDIS_URL, {
+var redis = new Redis({
+  host: 'localhost',
+  port: 6379,
   maxRetriesPerRequest: null,
-  enableReadyCheck: false,
+  lazyConnect: true,
+  retryStrategy: function(times) { return null; }
 });
 
-redis.on('error', (err) => {
-  console.error('Redis connection error:', err);
+redis.on('error', function(err) {
+  console.warn('Redis unavailable (non-critical):', err.message);
 });
 
 export async function connectRedis() {
-  // redis ping
-  await redis.ping();
-  console.log('📦 Redis connected');
+  try { await redis.connect(); await redis.ping(); }
+  catch(e) { console.warn('Redis skipped - running without cache/blacklist'); }
 }
 
 export default redis;

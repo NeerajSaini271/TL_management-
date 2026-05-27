@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "tl-attendance-system",
   "version": "1.0.0",
   "private": true,
@@ -7,14 +7,14 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "db:migrate": "prisma migrate deploy",
-    "db:generate": "prisma generate",
+    "db:migrate": "pnpm prisma migrate deploy",
+    "db:generate": "pnpm prisma generate",
     "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "prisma studio",
+    "db:studio": "pnpm prisma studio",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write .",
     "test": "vitest run",
-    "prepare": "prisma generate"
+    "prepare": "pnpm prisma generate"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.1",
@@ -24,12 +24,12 @@
     "@fastify/rate-limit": "^10.2.1",
     "@fastify/swagger": "^9.4.2",
     "@fastify/swagger-ui": "^5.2.1",
-    "@prisma/client": "^6.4.0",
     "argon2": "^0.41.1",
     "dotenv": "^16.4.7",
     "fastify": "^5.2.0",
     "ioredis": "^5.4.2",
     "jsonwebtoken": "^9.0.2",
+    "pg": "^8.21.0",
     "pino": "^9.6.0",
     "pino-pretty": "^13.0.0",
     "zod": "^3.24.2"
@@ -37,10 +37,10 @@
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.9",
     "@types/node": "^22.13.4",
+    "@types/pg": "^8.20.0",
     "eslint": "^9.20.1",
     "prettier": "^3.5.1",
-    "prisma": "^6.4.0",
-    "tsx": "^4.19.2",
+    "tsx": "^4.22.3",
     "typescript": "^5.7.3",
     "vitest": "^3.0.7"
   },

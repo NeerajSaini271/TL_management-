@@ -1,7 +1,6 @@
-﻿node_modules
+node_modules
 dist
 .env
 *.log
 coverage
 .DS_Store
-prisma/migrations/!(migration_lock.toml)

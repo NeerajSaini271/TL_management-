@@ -1,43 +1,6 @@
-﻿export class AppError extends Error {
-  public statusCode: number;
-  public isOperational: boolean;
-  public code?: string;
-
-  constructor(message: string, statusCode: number, code?: string) {
-    super(message);
-    this.statusCode = statusCode;
-    this.isOperational = true;
-    this.code = code;
-    Error.captureStackTrace(this, this.constructor);
-  }
-}
-
-export class BadRequestError extends AppError {
-  constructor(message = 'Bad request') {
-    super(message, 400);
-  }
-}
-
-export class UnauthorizedError extends AppError {
-  constructor(message = 'Unauthorized') {
-    super(message, 401);
-  }
-}
-
-export class ForbiddenError extends AppError {
-  constructor(message = 'Forbidden') {
-    super(message, 403);
-  }
-}
-
-export class NotFoundError extends AppError {
-  constructor(message = 'Resource not found') {
-    super(message, 404);
-  }
-}
-
-export class ConflictError extends AppError {
-  constructor(message = 'Conflict') {
-    super(message, 409);
-  }
-}
+export var AppError = (function() { function AppError(message, statusCode) { Error.call(this, message); this.statusCode = statusCode; } AppError.prototype = Object.create(Error.prototype); return AppError; })();
+export var BadRequestError = (function() { function BadRequestError(m) { if (!m) m = 'Bad request'; AppError.call(this, m, 400); } BadRequestError.prototype = Object.create(AppError.prototype); return BadRequestError; })();
+export var UnauthorizedError = (function() { function UnauthorizedError(m) { if (!m) m = 'Unauthorized'; AppError.call(this, m, 401); } UnauthorizedError.prototype = Object.create(AppError.prototype); return UnauthorizedError; })();
+export var ForbiddenError = (function() { function ForbiddenError(m) { if (!m) m = 'Forbidden'; AppError.call(this, m, 403); } ForbiddenError.prototype = Object.create(AppError.prototype); return ForbiddenError; })();
+export var NotFoundError = (function() { function NotFoundError(m) { if (!m) m = 'Not found'; AppError.call(this, m, 404); } NotFoundError.prototype = Object.create(AppError.prototype); return NotFoundError; })();
+export var ConflictError = (function() { function ConflictError(m) { if (!m) m = 'Conflict'; AppError.call(this, m, 409); } ConflictError.prototype = Object.create(AppError.prototype); return ConflictError; })();

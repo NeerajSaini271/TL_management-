@@ -1,9 +1,7 @@
-﻿import dotenv from 'dotenv';
+import dotenv from 'dotenv';
 import { z } from 'zod';
-
 dotenv.config();
-
-const envSchema = z.object({
+var envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().int().positive().default(3000),
   DATABASE_URL: z.string().url(),
@@ -14,15 +12,9 @@ const envSchema = z.object({
   JWT_REFRESH_EXPIRATION: z.string().default('7d'),
   CSRF_SECRET: z.string().min(32),
   COOKIE_DOMAIN: z.string().default('localhost'),
-  COOKIE_SECURE: z.enum(['true', 'false']).transform(val => val === 'true'),
+  COOKIE_SECURE: z.enum(['true', 'false']).transform(function(v) { return v === 'true'; }),
 });
-
-const parsed = envSchema.safeParse(process.env);
-
-if (!parsed.success) {
-  console.error('❌ Invalid environment variables:', parsed.error.flatten().fieldErrors);
-  process.exit(1);
-}
-
-export const config = parsed.data;
+var parsed = envSchema.safeParse(process.env);
+if (!parsed.success) { console.error(parsed.error.flatten()); process.exit(1); }
+export var config = parsed.data;
 export default config;
