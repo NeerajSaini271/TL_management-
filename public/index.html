@@ -3,338 +3,408 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>TL Management System</title>
+<title>TL Management System | Enterprise</title>
 <style>
-:root { --bg: #0f172a; --card: #1e293b; --blue: #3b82f6; --green: #22c55e; --red: #ef4444; --text: #e2e8f0; --muted: #94a3b8; }
+:root {
+  --bg: #0a0e17; --surface: #141b2d; --card: #1a2235; --border: #243044;
+  --primary: #4f8fff; --primary-dark: #3b6fd4; --success: #10b981; --warning: #f59e0b;
+  --danger: #ef4444; --text: #e2e8f0; --muted: #8899b4; --accent: #6c5ce7;
+}
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-nav { background: var(--card); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #334155; }
-nav h1 { color: var(--blue); font-size: 20px; }
-nav .user { display: flex; align-items: center; gap: 15px; }
-.btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
-.btn-blue { background: var(--blue); color: white; }
-.btn-green { background: var(--green); color: white; }
-.btn-red { background: var(--red); color: white; }
-.btn-outline { background: transparent; border: 1px solid var(--blue); color: var(--blue); }
-.container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-.card { background: var(--card); padding: 25px; border-radius: 12px; margin-bottom: 20px; }
-.card h2 { margin-bottom: 15px; color: var(--blue); font-size: 18px; }
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.stat { background: var(--card); padding: 20px; border-radius: 12px; text-align: center; }
-.stat h3 { font-size: 32px; color: var(--blue); }
-.stat p { color: var(--muted); margin-top: 5px; }
-.grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+.sidebar { position: fixed; top: 0; left: 0; width: 260px; height: 100vh; background: var(--surface); border-right: 1px solid var(--border); padding: 20px; z-index: 100; overflow-y: auto; }
+.sidebar .logo { font-size: 22px; font-weight: 800; color: var(--primary); margin-bottom: 30px; display: flex; align-items: center; gap: 10px; }
+.sidebar .logo span { font-size: 28px; }
+.nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 10px; cursor: pointer; color: var(--muted); margin-bottom: 4px; transition: all 0.2s; font-size: 14px; }
+.nav-item:hover, .nav-item.active { background: var(--primary-dark); color: white; }
+.nav-item .icon { font-size: 18px; width: 24px; text-align: center; }
+.nav-section { font-size: 11px; text-transform: uppercase; color: var(--muted); margin: 20px 0 10px 16px; letter-spacing: 1px; }
+.main { margin-left: 260px; padding: 30px; min-height: 100vh; }
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.topbar h2 { font-size: 28px; font-weight: 700; }
+.topbar .actions { display: flex; gap: 10px; align-items: center; }
+.search { background: var(--card); border: 1px solid var(--border); padding: 10px 16px; border-radius: 10px; color: white; width: 250px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; margin-bottom: 30px; }
+.stat-card { background: var(--card); padding: 24px; border-radius: 16px; border: 1px solid var(--border); position: relative; overflow: hidden; }
+.stat-card .icon { font-size: 32px; margin-bottom: 12px; }
+.stat-card .value { font-size: 36px; font-weight: 800; }
+.stat-card .label { color: var(--muted); font-size: 14px; margin-top: 4px; }
+.stat-card .trend { font-size: 12px; margin-top: 8px; }
+.trend-up { color: var(--success); }
+.trend-down { color: var(--danger); }
+.card { background: var(--card); border-radius: 16px; border: 1px solid var(--border); padding: 24px; margin-bottom: 24px; }
+.card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.card-header h3 { font-size: 18px; font-weight: 600; }
+.btn { padding: 10px 20px; border-radius: 10px; border: none; cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-primary:hover { background: var(--primary-dark); }
+.btn-success { background: var(--success); color: white; }
+.btn-danger { background: var(--danger); color: white; }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { background: var(--surface); }
+.btn-sm { padding: 6px 14px; font-size: 12px; }
 table { width: 100%; border-collapse: collapse; }
-th, td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-th { color: var(--muted); font-weight: 600; }
-.form-group { margin-bottom: 15px; }
-.form-group label { display: block; margin-bottom: 5px; color: var(--muted); }
-.form-group input, .form-group select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #334155; background: var(--bg); color: white; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.badge { padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; }
-.badge-green { background: var(--green); color: white; }
-.badge-red { background: var(--red); color: white; }
-.badge-yellow { background: #eab308; color: black; }
-.modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 1000; justify-content: center; align-items: center; }
-.modal.active { display: flex; }
-.modal-content { background: var(--card); padding: 30px; border-radius: 12px; width: 90%; max-width: 500px; }
-.tabs { display: flex; gap: 5px; margin-bottom: 20px; }
-.tab { padding: 10px 20px; background: var(--bg); border: none; color: var(--muted); cursor: pointer; border-radius: 8px 8px 0 0; }
-.tab.active { background: var(--blue); color: white; }
-.hidden { display: none; }
+th { text-align: left; padding: 12px 16px; color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid var(--border); }
+td { padding: 14px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
+tr:hover { background: rgba(79, 143, 255, 0.03); }
+.badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.badge-success { background: rgba(16,185,129,0.15); color: var(--success); }
+.badge-danger { background: rgba(239,68,68,0.15); color: var(--danger); }
+.badge-warning { background: rgba(245,158,11,0.15); color: var(--warning); }
+.badge-info { background: rgba(79,143,255,0.15); color: var(--primary); }
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; color: var(--muted); font-size: 13px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; color: white; font-size: 14px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.alert { padding: 14px 18px; border-radius: 10px; margin-bottom: 16px; font-size: 14px; }
+.alert-success { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
+.alert-error { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+.empty { text-align: center; padding: 60px; color: var(--muted); }
+.empty .icon { font-size: 48px; margin-bottom: 16px; }
+.modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 200; justify-content: center; align-items: center; }
+.modal-overlay.active { display: flex; }
+.modal { background: var(--card); padding: 30px; border-radius: 16px; width: 90%; max-width: 550px; border: 1px solid var(--border); }
+.modal h3 { margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end; }
+.chart-bar { display: flex; align-items: end; gap: 8px; height: 150px; padding: 10px 0; }
+.chart-bar .bar { flex: 1; background: var(--primary); border-radius: 6px 6px 0 0; min-height: 4px; transition: all 0.3s; }
+.chart-labels { display: flex; gap: 8px; }
+.chart-labels span { flex: 1; text-align: center; font-size: 10px; color: var(--muted); }
+.progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-top: 8px; }
+.progress-bar .fill { height: 100%; border-radius: 4px; }
+.fill-green { background: var(--success); }
+.fill-blue { background: var(--primary); }
+.fill-yellow { background: var(--warning); }
+.tag { display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; border-radius: 6px; font-size: 12px; margin: 2px; }
+.tag-blue { background: rgba(79,143,255,0.15); color: var(--primary); }
+@media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .grid-2, .grid-3 { grid-template-columns: 1fr; } }
+.page { display: none; }
+.page.active { display: block; }
 </style>
 </head>
 <body>
 
-<!-- NAVIGATION -->
-<nav>
-  <h1>🏢 TL Management</h1>
-  <div class="user" id="nav-user">
-    <span id="nav-email"></span>
-    <button class="btn btn-outline" onclick="showPage('login')" id="nav-login-btn">Login</button>
-    <button class="btn btn-red hidden" onclick="logout()" id="nav-logout-btn">Logout</button>
-  </div>
-</nav>
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo"><span>🛡️</span> TL Manager</div>
+  <div class="nav-section">Main</div>
+  <div class="nav-item active" onclick="navigate('dashboard')"><span class="icon">📊</span> Dashboard</div>
+  <div class="nav-item" onclick="navigate('employees')"><span class="icon">👥</span> Team Members</div>
+  <div class="nav-item" onclick="navigate('tls')"><span class="icon">👔</span> Team Leads</div>
+  <div class="nav-section">Operations</div>
+  <div class="nav-item" onclick="navigate('attendance')"><span class="icon">📅</span> Attendance</div>
+  <div class="nav-item" onclick="navigate('ratings')"><span class="icon">⭐</span> Ratings</div>
+  <div class="nav-section">Security</div>
+  <div class="nav-item" onclick="navigate('audit')"><span class="icon">🔒</span> Audit Logs</div>
+  <div class="nav-item" onclick="navigate('apikeys')"><span class="icon">🔑</span> API Keys</div>
+  <div class="nav-item" onclick="navigate('settings')"><span class="icon">⚙️</span> Settings</div>
+</aside>
 
-<div class="container">
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <h2 id="page-title">Dashboard</h2>
+    <div class="actions">
+      <input type="text" class="search" placeholder="Search anything...">
+      <span id="user-info" style="color:var(--muted)">Not logged in</span>
+      <button class="btn btn-outline btn-sm" onclick="logout()">Logout</button>
+    </div>
+  </div>
 
   <!-- LOGIN PAGE -->
-  <div id="page-login">
-    <div style="max-width:400px;margin:50px auto">
+  <div class="page active" id="page-login">
+    <div style="max-width:440px;margin:60px auto">
       <div class="card">
-        <h2>Login</h2>
+        <h3 style="text-align:center;margin-bottom:24px">🔐 Sign In</h3>
         <div class="form-group"><label>Email</label><input type="email" id="login-email" value="admin@company.com"></div>
         <div class="form-group"><label>Password</label><input type="password" id="login-password" value="NewPass@123!"></div>
-        <button class="btn btn-blue" onclick="login()" style="width:100%">Login</button>
-        <p id="login-error" style="color:red;margin-top:10px"></p>
-        <p style="margin-top:15px;text-align:center"><a href="#" onclick="showPage('register')" style="color:var(--blue)">Create account</a></p>
+        <button class="btn btn-primary" onclick="login()" style="width:100%;padding:12px">Sign In</button>
+        <p id="login-error" style="color:var(--danger);margin-top:12px;text-align:center"></p>
+        <p style="text-align:center;margin-top:16px;color:var(--muted)">Don't have an account? <a href="#" onclick="showRegister()" style="color:var(--primary)">Register</a></p>
+        <div style="margin-top:20px;padding:16px;background:var(--surface);border-radius:10px;font-size:12px;color:var(--muted)">
+          <strong>Demo Accounts:</strong><br>
+          Admin: admin@company.com / NewPass@123!<br>
+          TL: tl@company.com / TL@123!<br>
+          Employee: employee@company.com / Employee@123!
+        </div>
       </div>
     </div>
   </div>
 
   <!-- REGISTER PAGE -->
-  <div id="page-register" class="hidden">
-    <div style="max-width:400px;margin:50px auto">
+  <div class="page" id="page-register">
+    <div style="max-width:440px;margin:60px auto">
       <div class="card">
-        <h2>Register</h2>
-        <div class="form-group"><label>Name</label><input type="text" id="reg-name"></div>
+        <h3 style="text-align:center;margin-bottom:24px">📝 Create Account</h3>
+        <div class="form-group"><label>Full Name</label><input type="text" id="reg-name"></div>
         <div class="form-group"><label>Email</label><input type="email" id="reg-email"></div>
         <div class="form-group"><label>Password</label><input type="password" id="reg-password"></div>
-        <div class="form-group"><label>Department</label><input type="text" id="reg-dept"></div>
-        <button class="btn btn-blue" onclick="register()" style="width:100%">Register</button>
-        <p style="margin-top:15px;text-align:center"><a href="#" onclick="showPage('login')" style="color:var(--blue)">Back to login</a></p>
+        <div class="form-group"><label>Department</label><input type="text" id="reg-dept" value="Engineering"></div>
+        <button class="btn btn-primary" onclick="register()" style="width:100%;padding:12px">Create Account</button>
+        <p style="text-align:center;margin-top:16px"><a href="#" onclick="showLogin()" style="color:var(--primary)">Already have an account? Sign in</a></p>
       </div>
     </div>
   </div>
 
   <!-- DASHBOARD -->
-  <div id="page-dashboard" class="hidden">
-    <div class="stats">
-      <div class="stat"><h3 id="stat-employees">-</h3><p>Team Members</p></div>
-      <div class="stat"><h3 id="stat-present">-</h3><p>Present Today</p></div>
-      <div class="stat"><h3 id="stat-tls">-</h3><p>Team Leads</p></div>
-      <div class="stat"><h3 id="stat-ratings">-</h3><p>Ratings Given</p></div>
+  <div class="page" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card"><div class="icon">👥</div><div class="value" id="stat-employees">0</div><div class="label">Team Members</div><div class="trend trend-up">↑ Active</div></div>
+      <div class="stat-card"><div class="icon">✅</div><div class="value" id="stat-present">0</div><div class="label">Present Today</div></div>
+      <div class="stat-card"><div class="icon">👔</div><div class="value" id="stat-tls">0</div><div class="label">Team Leads</div></div>
+      <div class="stat-card"><div class="icon">⭐</div><div class="value" id="stat-ratings">0</div><div class="label">Ratings Given</div></div>
     </div>
 
-    <div class="grid">
+    <div class="grid-2">
       <div class="card">
-        <h2>📋 Quick Attendance</h2>
-        <div class="form-group"><label>Status</label><select id="quick-status"><option>PRESENT</option><option>ABSENT</option><option>LEAVE</option><option>HALF_DAY</option></select></div>
-        <button class="btn btn-green" onclick="quickMark()">Mark Attendance</button>
-        <p id="quick-result" style="margin-top:10px;color:var(--green)"></p>
+        <div class="card-header"><h3>📋 Quick Attendance</h3></div>
+        <div class="form-group"><label>Status</label><select id="quick-status"><option value="PRESENT">✅ Present</option><option value="ABSENT">❌ Absent</option><option value="LEAVE">🏖️ Leave</option><option value="HALF_DAY">🌓 Half Day</option></select></div>
+        <div class="form-group"><label>Comment</label><input type="text" id="quick-comment" placeholder="Optional note..."></div>
+        <button class="btn btn-success" onclick="quickMark()">Mark Attendance</button>
+        <p id="quick-result" style="margin-top:12px"></p>
       </div>
       <div class="card">
-        <h2>⭐ Quick Rating</h2>
-        <div class="form-group"><label>Employee ID</label><input type="number" id="quick-emp-id" placeholder="Enter employee ID"></div>
-        <div class="form-group"><label>Score (1-10)</label><input type="number" id="quick-score" min="1" max="10" value="8"></div>
+        <div class="card-header"><h3>⭐ Quick Rating</h3></div>
+        <div class="form-row">
+          <div class="form-group"><label>Employee ID</label><input type="number" id="quick-emp" placeholder="ID"></div>
+          <div class="form-group"><label>Score (1-10)</label><input type="number" id="quick-score" value="8" min="1" max="10"></div>
+        </div>
         <div class="form-group"><label>Month</label><input type="text" id="quick-month" value="2026-05"></div>
-        <button class="btn btn-blue" onclick="quickRate()">Submit Rating</button>
-        <p id="rate-result" style="margin-top:10px;color:var(--green)"></p>
+        <div class="form-group"><label>Comment</label><textarea id="quick-rating-comment" rows="2" placeholder="Performance review..."></textarea></div>
+        <button class="btn btn-primary" onclick="quickRate()">Submit Rating</button>
+        <p id="rate-result" style="margin-top:12px"></p>
       </div>
     </div>
 
-    <!-- TABS -->
-    <div class="tabs" style="margin-top:20px">
-      <button class="tab active" onclick="switchTab('employees')">Employees</button>
-      <button class="tab" onclick="switchTab('tls')">Team Leads</button>
-      <button class="tab" onclick="switchTab('attendance')">Attendance</button>
-      <button class="tab" onclick="switchTab('ratings')">My Ratings</button>
-      <button class="tab" onclick="switchTab('audit')">Audit Logs</button>
+    <div class="card" style="margin-top:24px">
+      <div class="card-header"><h3>📈 Weekly Attendance</h3></div>
+      <div class="chart-bar">
+        <div class="bar" style="height:80%"></div><div class="bar" style="height:95%"></div><div class="bar" style="height:60%"></div><div class="bar" style="height:90%"></div><div class="bar" style="height:75%"></div><div class="bar" style="height:85%"></div><div class="bar" style="height:70%"></div>
+      </div>
+      <div class="chart-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
     </div>
+  </div>
 
-    <div id="tab-employees" class="card">
-      <h2>Team Members</h2>
-      <div id="employees-table"></div>
-    </div>
-    <div id="tab-tls" class="card hidden">
-      <h2>Team Leads</h2>
-      <button class="btn btn-green" onclick="showAddTL()" style="margin-bottom:15px">+ Add TL</button>
+  <!-- EMPLOYEES -->
+  <div class="page" id="page-employees">
+    <div class="card"><div class="card-header"><h3>👥 All Team Members</h3></div><div id="employees-table"></div></div>
+  </div>
+
+  <!-- TLs -->
+  <div class="page" id="page-tls">
+    <div class="card">
+      <div class="card-header"><h3>👔 Team Leads</h3><button class="btn btn-primary btn-sm" onclick="showAddTL()">+ Add TL</button></div>
       <div id="tls-table"></div>
     </div>
-    <div id="tab-attendance" class="card hidden">
-      <h2>My Attendance History</h2>
-      <div id="attendance-table"></div>
+  </div>
+
+  <!-- ATTENDANCE -->
+  <div class="page" id="page-attendance">
+    <div class="card"><div class="card-header"><h3>📅 My Attendance History</h3></div><div id="attendance-table"></div></div>
+  </div>
+
+  <!-- RATINGS -->
+  <div class="page" id="page-ratings">
+    <div class="card"><div class="card-header"><h3>⭐ My Performance Ratings</h3></div><div id="ratings-table"></div></div>
+  </div>
+
+  <!-- AUDIT -->
+  <div class="page" id="page-audit">
+    <div class="card"><div class="card-header"><h3>🔒 Audit Logs (Tamper-Proof)</h3></div><div id="audit-table"></div></div>
+  </div>
+
+  <!-- API KEYS -->
+  <div class="page" id="page-apikeys">
+    <div class="card">
+      <div class="card-header"><h3>🔑 API Keys</h3><button class="btn btn-primary btn-sm" onclick="createAPIKey()">+ Generate Key</button></div>
+      <div id="apikeys-table"></div>
     </div>
-    <div id="tab-ratings" class="card hidden">
-      <h2>My Ratings</h2>
-      <div id="ratings-table"></div>
-    </div>
-    <div id="tab-audit" class="card hidden">
-      <h2>Audit Logs</h2>
-      <div id="audit-table"></div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="page" id="page-settings">
+    <div class="card">
+      <div class="card-header"><h3>⚙️ Account Settings</h3></div>
+      <div class="form-group"><label>Current Password</label><input type="password" id="settings-current-pwd"></div>
+      <div class="form-group"><label>New Password</label><input type="password" id="settings-new-pwd"></div>
+      <button class="btn btn-primary" onclick="changePassword()">Change Password</button>
+      <p id="settings-result" style="margin-top:12px"></p>
     </div>
   </div>
 </div>
 
 <!-- ADD TL MODAL -->
-<div class="modal" id="modal-tl">
-  <div class="modal-content">
-    <h2>Add Team Lead</h2>
+<div class="modal-overlay" id="modal-tl">
+  <div class="modal">
+    <h3>Add Team Lead</h3>
     <div class="form-group"><label>Name</label><input type="text" id="tl-name"></div>
     <div class="form-group"><label>Email</label><input type="email" id="tl-email"></div>
     <div class="form-group"><label>Password</label><input type="password" id="tl-password"></div>
     <div class="form-group"><label>Department</label><input type="text" id="tl-dept"></div>
-    <button class="btn btn-green" onclick="addTL()">Create TL</button>
-    <button class="btn btn-outline" onclick="closeModal('modal-tl')" style="margin-left:10px">Cancel</button>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-tl')">Cancel</button>
+      <button class="btn btn-primary" onclick="addTL()">Create TL</button>
+    </div>
   </div>
 </div>
 
 <script>
 var API = '/api/v1';
-var currentUser = null;
+var user = null;
 
-function showPage(page) {
-  document.querySelectorAll('[id^="page-"]').forEach(function(p) { p.classList.add('hidden'); });
-  var el = document.getElementById('page-' + page);
-  if (el) el.classList.remove('hidden');
-  if (page === 'dashboard') loadDashboard();
-}
-
-async function api(method, path, body) {
+function apiCall(method, path, body) {
   var opts = { method: method, headers: { 'Content-Type': 'application/json' }, credentials: 'include' };
   if (body) opts.body = JSON.stringify(body);
-  var res = await fetch(API + path, opts);
-  return res.json();
+  return fetch(API + path, opts).then(function(r) { return r.json(); });
 }
 
+function navigate(page) {
+  document.querySelectorAll('.nav-item').forEach(function(n) { n.classList.remove('active'); });
+  event.target.closest('.nav-item').classList.add('active');
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  var el = document.getElementById('page-' + page);
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = event.target.closest('.nav-item').textContent.trim();
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'employees') loadEmployees();
+  if (page === 'tls') loadTLs();
+  if (page === 'attendance') loadAttendance();
+  if (page === 'ratings') loadRatings();
+  if (page === 'audit') loadAudit();
+  if (page === 'apikeys') loadAPIKeys();
+}
+
+function showLogin() { document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); }); document.getElementById('page-login').classList.add('active'); document.getElementById('page-title').textContent = 'Sign In'; }
+function showRegister() { document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); }); document.getElementById('page-register').classList.add('active'); document.getElementById('page-title').textContent = 'Register'; }
+
 async function login() {
-  var email = document.getElementById('login-email').value;
-  var password = document.getElementById('login-password').value;
-  var data = await api('POST', '/auth/login', { email: email, password: password });
+  var data = await apiCall('POST', '/auth/login', { email: document.getElementById('login-email').value, password: document.getElementById('login-password').value });
   if (data.success) {
-    currentUser = data.data.user;
-    document.getElementById('nav-email').textContent = currentUser.email + ' (' + currentUser.role + ')';
-    document.getElementById('nav-login-btn').classList.add('hidden');
-    document.getElementById('nav-logout-btn').classList.remove('hidden');
-    showPage('dashboard');
+    user = data.data.user;
+    document.getElementById('user-info').textContent = user.name + ' (' + user.role + ')';
+    document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+    document.getElementById('page-dashboard').classList.add('active');
+    document.getElementById('page-title').textContent = 'Dashboard';
+    loadDashboard();
   } else {
     document.getElementById('login-error').textContent = data.message || 'Login failed';
   }
 }
 
 async function register() {
-  var data = await api('POST', '/auth/register', {
-    email: document.getElementById('reg-email').value,
-    password: document.getElementById('reg-password').value,
-    name: document.getElementById('reg-name').value,
-    department: document.getElementById('reg-dept').value
-  });
-  if (data.success) showPage('login');
+  var data = await apiCall('POST', '/auth/register', { name: document.getElementById('reg-name').value, email: document.getElementById('reg-email').value, password: document.getElementById('reg-password').value, department: document.getElementById('reg-dept').value });
+  if (data.success) showLogin();
 }
 
-async function logout() {
-  await api('POST', '/auth/logout');
-  currentUser = null;
-  document.getElementById('nav-email').textContent = '';
-  document.getElementById('nav-login-btn').classList.remove('hidden');
-  document.getElementById('nav-logout-btn').classList.add('hidden');
-  showPage('login');
-}
+async function logout() { await apiCall('POST', '/auth/logout'); user = null; document.getElementById('user-info').textContent = 'Not logged in'; showLogin(); }
 
 async function loadDashboard() {
-  var me = await api('GET', '/auth/me');
-  if (me.data) currentUser = me.data;
-  
-  var tls = await api('GET', '/tls');
-  if (tls.data) document.getElementById('stat-tls').textContent = tls.data.length;
-  
-  var att = await api('GET', '/attendance/today');
+  var tls = await apiCall('GET', '/tls');
+  document.getElementById('stat-tls').textContent = tls.data ? tls.data.length : 0;
+  document.getElementById('stat-employees').textContent = tls.data ? tls.data.length : 0;
+  var ratings = await apiCall('GET', '/ratings/my');
+  document.getElementById('stat-ratings').textContent = ratings.data ? ratings.data.length : 0;
+  var att = await apiCall('GET', '/attendance/today');
   document.getElementById('stat-present').textContent = att.data && att.data.marked ? 1 : 0;
-  
-  document.getElementById('stat-employees').textContent = '-';
-  document.getElementById('stat-ratings').textContent = '-';
-  
-  loadEmployees();
+}
+
+function renderTable(container, data, columns) {
+  var html = '<table><thead><tr>';
+  columns.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
+  html += '</tr></thead><tbody>';
+  if (!data || data.length === 0) { html += '<tr><td colspan="' + columns.length + '"><div class="empty"><div class="icon">📭</div>No data available</div></td></tr>'; }
+  else { data.forEach(function(row) { html += '<tr>'; columns.forEach(function(c) { html += '<td>' + (c.render ? c.render(row) : (row[c.key] || '-')) + '</td>'; }); html += '</tr>'; }); }
+  html += '</tbody></table>';
+  document.getElementById(container).innerHTML = html;
 }
 
 async function loadEmployees() {
-  var data = await api('GET', '/tls');
-  var html = '<table><tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Status</th></tr>';
-  if (data.data) {
-    data.data.forEach(function(tl) {
-      html += '<tr><td>' + tl.id + '</td><td>' + tl.name + '</td><td>' + tl.email + '</td><td>' + tl.department + '</td><td><span class="badge ' + (tl.is_active ? 'badge-green' : 'badge-red') + '">' + (tl.is_active ? 'Active' : 'Inactive') + '</span></td></tr>';
-    });
-  }
-  html += '</table>';
-  document.getElementById('employees-table').innerHTML = html;
-  document.getElementById('stat-employees').textContent = data.data ? data.data.length : 0;
-}
-
-function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-  document.querySelectorAll('[id^="tab-"]').forEach(function(t) { t.classList.add('hidden'); });
-  event.target.classList.add('active');
-  document.getElementById('tab-' + tab).classList.remove('hidden');
-  if (tab === 'tls') loadTLs();
-  if (tab === 'attendance') loadAttendance();
-  if (tab === 'ratings') loadRatings();
-  if (tab === 'audit') loadAudit();
+  var data = await apiCall('GET', '/tls');
+  renderTable('employees-table', data.data, [
+    { key: 'id', label: 'ID' }, { key: 'name', label: 'Name' }, { key: 'email', label: 'Email' }, { key: 'department', label: 'Department' },
+    { label: 'Status', render: function(r) { return '<span class="badge ' + (r.is_active ? 'badge-success' : 'badge-danger') + '">' + (r.is_active ? 'Active' : 'Inactive') + '</span>'; } }
+  ]);
 }
 
 async function loadTLs() {
-  var data = await api('GET', '/tls');
-  var html = '<table><tr><th>ID</th><th>Name</th><th>Email</th><th>Department</th><th>Status</th></tr>';
-  if (data.data) {
-    data.data.forEach(function(tl) {
-      html += '<tr><td>' + tl.id + '</td><td>' + tl.name + '</td><td>' + tl.email + '</td><td>' + tl.department + '</td><td><span class="badge ' + (tl.is_active ? 'badge-green' : 'badge-red') + '">' + (tl.is_active ? 'Active' : 'Inactive') + '</span></td></tr>';
-    });
-  }
-  html += '</table>';
-  document.getElementById('tls-table').innerHTML = html;
+  var data = await apiCall('GET', '/tls');
+  renderTable('tls-table', data.data, [
+    { key: 'id', label: 'ID' }, { key: 'name', label: 'Name' }, { key: 'email', label: 'Email' }, { key: 'department', label: 'Department' },
+    { label: 'Status', render: function(r) { return '<span class="badge ' + (r.is_active ? 'badge-success' : 'badge-danger') + '">' + (r.is_active ? 'Active' : 'Inactive') + '</span>'; } }
+  ]);
 }
 
 async function loadAttendance() {
-  var data = await api('GET', '/attendance/my');
-  var html = '<table><tr><th>Date</th><th>Status</th><th>Late</th><th>Comment</th></tr>';
-  if (data.data) {
-    data.data.forEach(function(a) {
-      html += '<tr><td>' + new Date(a.date).toLocaleDateString() + '</td><td>' + a.status + '</td><td>' + (a.is_late ? '⚠️ Yes' : '✅ No') + '</td><td>' + (a.comment || '-') + '</td></tr>';
-    });
-  }
-  html += '</table>';
-  document.getElementById('attendance-table').innerHTML = html;
+  var data = await apiCall('GET', '/attendance/my');
+  renderTable('attendance-table', data.data, [
+    { label: 'Date', render: function(r) { return new Date(r.date).toLocaleDateString(); } },
+    { key: 'status', label: 'Status' },
+    { label: 'Late', render: function(r) { return r.is_late ? '<span class="badge badge-warning">⚠️ Late</span>' : '<span class="badge badge-success">✅ On Time</span>'; } },
+    { key: 'comment', label: 'Comment' }
+  ]);
 }
 
 async function loadRatings() {
-  var data = await api('GET', '/ratings/my');
-  var html = '<table><tr><th>Month</th><th>Score</th><th>Comment</th></tr>';
-  if (data.data) {
-    data.data.forEach(function(r) {
-      html += '<tr><td>' + r.month + '</td><td>' + r.score + '/10</td><td>' + (r.comment || '-') + '</td></tr>';
-    });
-  }
-  html += '</table>';
-  document.getElementById('ratings-table').innerHTML = html;
-  document.getElementById('stat-ratings').textContent = data.data ? data.data.length : 0;
+  var data = await apiCall('GET', '/ratings/my');
+  renderTable('ratings-table', data.data, [
+    { key: 'month', label: 'Month' },
+    { label: 'Score', render: function(r) { return '<strong>' + r.score + '</strong>/10 <div class="progress-bar"><div class="fill ' + (r.score >= 7 ? 'fill-green' : r.score >= 4 ? 'fill-yellow' : 'fill-red') + '" style="width:' + (r.score * 10) + '%"></div></div>'; } },
+    { key: 'comment', label: 'Comment' }
+  ]);
 }
 
 async function loadAudit() {
-  var data = await api('GET', '/audit/logs');
-  var html = '<table><tr><th>Action</th><th>Resource</th><th>Detail</th><th>Time</th></tr>';
-  if (data.data) {
-    data.data.slice(0, 20).forEach(function(a) {
-      html += '<tr><td>' + a.action + '</td><td>' + a.resource + '</td><td>' + (a.detail || '-') + '</td><td>' + new Date(a.created_at).toLocaleString() + '</td></tr>';
-    });
-  }
-  html += '</table>';
-  document.getElementById('audit-table').innerHTML = html;
+  var data = await apiCall('GET', '/audit/logs');
+  renderTable('audit-table', (data.data || []).slice(0, 30), [
+    { key: 'action', label: 'Action' }, { key: 'resource', label: 'Resource' }, { key: 'detail', label: 'Detail' },
+    { label: 'Time', render: function(r) { return new Date(r.created_at).toLocaleString(); } }
+  ]);
+}
+
+async function loadAPIKeys() {
+  var data = await apiCall('GET', '/api-keys');
+  renderTable('apikeys-table', data.data, [
+    { key: 'name', label: 'Name' }, { key: 'prefix', label: 'Prefix' }, { key: 'scopes', label: 'Scopes' },
+    { label: 'Status', render: function(r) { return '<span class="badge ' + (r.is_active ? 'badge-success' : 'badge-danger') + '">' + (r.is_active ? 'Active' : 'Revoked') + '</span>'; } }
+  ]);
 }
 
 async function quickMark() {
-  var status = document.getElementById('quick-status').value;
-  var data = await api('POST', '/attendance/mark', { status: status });
-  document.getElementById('quick-result').textContent = data.success ? 'Marked ' + status + '!' : data.message;
-  if (data.success) loadAttendance();
+  var data = await apiCall('POST', '/attendance/mark', { status: document.getElementById('quick-status').value, comment: document.getElementById('quick-comment').value });
+  var el = document.getElementById('quick-result');
+  el.innerHTML = data.success ? '<div class="alert alert-success">✅ Attendance marked!</div>' : '<div class="alert alert-error">' + data.message + '</div>';
 }
 
 async function quickRate() {
-  var data = await api('POST', '/ratings', {
-    userId: document.getElementById('quick-emp-id').value,
-    month: document.getElementById('quick-month').value,
-    score: parseInt(document.getElementById('quick-score').value),
-    comment: 'Quick rating'
-  });
-  document.getElementById('rate-result').textContent = data.success ? 'Rating submitted!' : data.message;
-  if (data.success) loadRatings();
+  var data = await apiCall('POST', '/ratings', { userId: document.getElementById('quick-emp').value, month: document.getElementById('quick-month').value, score: parseInt(document.getElementById('quick-score').value), comment: document.getElementById('quick-rating-comment').value });
+  var el = document.getElementById('rate-result');
+  el.innerHTML = data.success ? '<div class="alert alert-success">⭐ Rating submitted!</div>' : '<div class="alert alert-error">' + data.message + '</div>';
 }
 
 function showAddTL() { document.getElementById('modal-tl').classList.add('active'); }
 function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 
 async function addTL() {
-  var data = await api('POST', '/tls', {
-    name: document.getElementById('tl-name').value,
-    email: document.getElementById('tl-email').value,
-    password: document.getElementById('tl-password').value,
-    department: document.getElementById('tl-dept').value
-  });
-  if (data.success) {
-    closeModal('modal-tl');
-    loadTLs();
-  }
+  var data = await apiCall('POST', '/tls', { name: document.getElementById('tl-name').value, email: document.getElementById('tl-email').value, password: document.getElementById('tl-password').value, department: document.getElementById('tl-dept').value });
+  if (data.success) { closeModal('modal-tl'); loadTLs(); }
 }
 
-showPage('login');
+async function createAPIKey() {
+  var name = prompt('Key name:', 'My API Key');
+  if (!name) return;
+  var data = await apiCall('POST', '/api-keys', { name: name, scopes: 'read,write' });
+  if (data.success) { alert('API Key created! Key: ' + data.data.key + '\n\nSave this key - it won' + "'" + 't be shown again.'); loadAPIKeys(); }
+}
+
+async function changePassword() {
+  var data = await apiCall('PUT', '/auth/change-password', { currentPassword: document.getElementById('settings-current-pwd').value, newPassword: document.getElementById('settings-new-pwd').value });
+  var el = document.getElementById('settings-result');
+  el.innerHTML = data.success ? '<div class="alert alert-success">✅ Password changed!</div>' : '<div class="alert alert-error">' + data.message + '</div>';
+}
+
+showLogin();
 </script>
 </body>
 </html>
