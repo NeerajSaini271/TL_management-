@@ -19,6 +19,7 @@ import { apiKeyRoutes } from './modules/apikeys/apikeys.routes.js';
 import { tlRoutes } from './modules/tl/tl.routes.js';
 import { attendanceRoutes } from './modules/attendance/attendance.routes.js';
 import { ratingsRoutes } from './modules/ratings/ratings.routes.js';
+import { canaryRoutes } from './modules/canary/canary.routes.js';
 import { auditRoutes } from './modules/audit/audit.routes.js';
 
 async function buildApp() {
@@ -39,7 +40,7 @@ async function buildApp() {
     openapi: {
       info: {
         title: 'TL Management API',
-        version: '3.0.0',
+        version: '4.0.0',
         description: 'Enterprise-grade backend with MFA, API Keys, PoW Login, Idempotency, Circuit Breaker, Leaky Bucket, Audit Chain'
       }
     }
@@ -53,6 +54,7 @@ async function buildApp() {
   await app.register(tlRoutes, { prefix: '/api/v1/tls' });
   await app.register(attendanceRoutes, { prefix: '/api/v1/attendance' });
   await app.register(ratingsRoutes, { prefix: '/api/v1/ratings' });
+  await app.register(canaryRoutes, { prefix: '/api/v1/canary' });
   await app.register(auditRoutes, { prefix: '/api/v1/audit' });
   
   app.get('/api/v1/health', async function() {
@@ -62,7 +64,7 @@ async function buildApp() {
       uptime: process.uptime(),
       memory: process.memoryUsage().heapUsed / 1024 / 1024,
       db: 'Neon PostgreSQL',
-      features: ['MFA/TOTP', 'API Keys', 'Audit Chain', 'Brute Force Protection', 'Refresh Rotation', 'Password Reset', 'Proof of Work', 'Idempotency', 'Circuit Breaker', 'Leaky Bucket', 'Correlation IDs', 'Request Signing']
+      features: ['MFA/TOTP', 'API Keys', 'Audit Chain', 'Quantum KEM', 'Canary Tokens', 'Anomaly Detection', 'ZKP', 'Tokenization', 'Brute Force Protection', 'Refresh Rotation', 'Password Reset', 'Proof of Work', 'Idempotency', 'Circuit Breaker', 'Leaky Bucket', 'Correlation IDs', 'Request Signing']
     };
   });
   

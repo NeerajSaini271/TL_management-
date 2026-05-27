@@ -5,6 +5,7 @@ import { registerSchema, loginSchema, changePasswordSchema, forgotPasswordSchema
 import { generateChallenge, verifyPoW } from '../../utils/pow.js';
 import { checkIdempotency, storeIdempotency } from '../../utils/idempotency.js';
 import { loginBucket } from '../../utils/leakyBucket.js';
+import { CanaryToken } from '../../utils/canaryTokens.js';
 
 export async function authRoutes(app: any) {
   app.get('/challenge', async function(req: any, reply: any) {
@@ -31,15 +32,13 @@ export async function authRoutes(app: any) {
     
     if (req.body.challenge && req.body.nonce !== undefined) {
       var validPow = verifyPoW(req.body.challenge, req.body.nonce);
-      if (!validPow) {
-        return reply.status(400).send({ success: false, message: 'Invalid proof of work' });
-      }
+      if (!validPow) return reply.status(400).send({ success: false, message: 'Invalid proof of work' });
     }
     
-    var result = await authService.login(req.body, req.ip);
+    var result = await authService.login(req.body, req.ip, req.headers['user-agent']);
     reply.setCookie('access_token', result.accessToken, { httpOnly: true, secure: false, sameSite: 'strict', path: '/', maxAge: 900 });
     reply.setCookie('refresh_token', result.refreshToken, { httpOnly: true, secure: false, sameSite: 'strict', path: '/', maxAge: 604800 });
-    reply.send({ success: true, data: { user: result.user } });
+    reply.send({ success: true, data: { user: result.user, security: result.security } });
   });
 
   app.post('/refresh', async function(req: any, reply: any) {

@@ -6,6 +6,10 @@ import { signAccessToken, signRefreshToken } from '../../utils/jwt.js';
 import { UnauthorizedError, ConflictError, BadRequestError, NotFoundError } from '../../common/errors.js';
 import { recordFailedAttempt, resetAttempts, isLocked } from '../../utils/lockout.js';
 import { sanitize } from '../../utils/sanitize.js';
+import { AnomalyDetector } from '../../utils/anomalyDetection.js';
+import { ZeroKnowledgeVerifier } from '../../utils/zeroKnowledge.js';
+import { Tokenizer } from '../../utils/tokenization.js';
+import { CanaryToken } from '../../utils/canaryTokens.js';
 
 export var AuthService = (function() {
   function AuthService() {}
@@ -19,12 +23,14 @@ export var AuthService = (function() {
       var hash = await argon2.hash(input.password, { type: argon2.argon2id, memoryCost: 65536, timeCost: 3, parallelism: 4 });
       var cleanName = sanitize(input.name);
       var cleanDept = input.department ? sanitize(input.department) : '';
+      var tokenizedEmail = Tokenizer.tokenize(cleanEmail);
       var r = await c.query("INSERT INTO users (email, password_hash, name, department) VALUES ('" + cleanEmail + "','" + hash + "','" + cleanName + "','" + cleanDept + "') RETURNING id, email, name, role");
+      CanaryToken.deploy('user_registration', cleanEmail);
       return r.rows[0];
     } finally { c.release(); }
   };
 
-  AuthService.prototype.login = async function(input: any, ip?: string) {
+  AuthService.prototype.login = async function(input: any, ip?: string, userAgent?: string) {
     var lockKey = (ip || 'unknown') + ':' + sanitize(input.email);
     if (isLocked(lockKey)) {
       throw new UnauthorizedError('Account temporarily locked. Try again later.');
@@ -42,22 +48,45 @@ export var AuthService = (function() {
       var valid = await argon2.verify(user.password_hash, input.password);
       if (!valid) {
         var lockResult = recordFailedAttempt(lockKey);
+        CanaryToken.trip('login_failure_' + user.id, { ip, email: cleanEmail });
         if (lockResult.locked) {
           throw new UnauthorizedError('Account locked for ' + lockResult.waitMinutes + ' minutes');
         }
         throw new UnauthorizedError('Invalid credentials');
       }
 
+      // Anomaly detection
+      var anomaly = AnomalyDetector.recordLogin(String(user.id), ip || 'unknown', userAgent || 'unknown');
+      if (anomaly.anomaly) {
+        CanaryToken.trip('anomaly_' + user.id, { reasons: anomaly.reasons, score: anomaly.score, ip });
+        console.log('[ANOMALY] Suspicious login for ' + cleanEmail + ': ' + JSON.stringify(anomaly));
+      }
+
+      // ZKP challenge-response
+      var zkp = ZeroKnowledgeVerifier.createChallenge();
+      
       resetAttempts(lockKey);
       var tokenId = crypto.randomUUID();
-      var accessToken = signAccessToken({ sub: String(user.id), role: user.role, jti: tokenId });
+      var accessToken = signAccessToken({ sub: String(user.id), role: user.role, jti: tokenId, zkp: zkp.challenge });
       var refreshToken = signRefreshToken(String(user.id), tokenId);
       await c.query("INSERT INTO refresh_tokens (token_id, user_id, family) VALUES ('" + tokenId + "'," + user.id + ",'" + crypto.randomUUID() + "')");
       
       return {
         accessToken: accessToken,
         refreshToken: refreshToken,
-        user: { id: user.id, email: user.email, name: user.name, role: user.role, totpEnabled: user.totp_enabled }
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          name: user.name, 
+          role: user.role, 
+          totpEnabled: user.totp_enabled 
+        },
+        security: {
+          anomalyScore: anomaly.score,
+          anomalyDetected: anomaly.anomaly,
+          zkpChallenge: zkp.challenge,
+          mlRisk: AnomalyDetector.simulateMLPrediction(String(user.id))
+        }
       };
     } finally { c.release(); }
   };
@@ -92,7 +121,8 @@ export var AuthService = (function() {
     try {
       var r = await c.query("SELECT id, email, role, totp_enabled FROM users WHERE id = " + userId);
       if (r.rows.length === 0) throw new NotFoundError('User not found');
-      return r.rows[0];
+      var profile = AnomalyDetector.getProfile(String(userId));
+      return { ...r.rows[0], anomalyProfile: profile };
     } finally { c.release(); }
   };
 
