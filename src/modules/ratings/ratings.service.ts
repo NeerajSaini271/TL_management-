@@ -13,9 +13,6 @@ export var RatingsService = (function() {
       if (exists.rows.length > 0) throw new BadRequestError('Rating exists for this month');
       var result = await c.query('INSERT INTO ratings (user_id, month, score, comment, reviewer_id) VALUES ($1,$2,$3,$4,$5) RETURNING *', [input.userId, input.month, input.score, input.comment || null, reviewerId]);
       return result.rows[0];
-    } catch (e) {
-      if (e instanceof BadRequestError || e instanceof NotFoundError) throw e;
-      throw new Error('Database error: ' + (e.message || 'Unknown'));
     } finally { c.release(); }
   };
 

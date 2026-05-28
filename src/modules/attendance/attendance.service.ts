@@ -10,14 +10,13 @@ export var AttendanceService = (function() {
       var today = new Date(); today.setHours(0,0,0,0);
       var tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate()+1);
       var existing = await c.query('SELECT id FROM attendance WHERE user_id = $1 AND date >= $2 AND date < $3', [userId, today.toISOString(), tomorrow.toISOString()]);
-      if (existing.rows.length > 0) throw new BadRequestError('Already marked today');
+      if (existing.rows.length > 0) {
+        throw new BadRequestError('Already marked today');
+      }
       var now = new Date();
       var isLate = input.status === 'PRESENT' && (now.getHours() > 9 || (now.getHours() === 9 && now.getMinutes() > 30));
       var result = await c.query('INSERT INTO attendance (user_id, status, is_late, comment) VALUES ($1,$2,$3,$4) RETURNING *', [userId, input.status, isLate, input.comment || null]);
       return result.rows[0];
-    } catch (e) {
-      if (e instanceof BadRequestError) throw e;
-      throw new Error('Database error: ' + (e.message || 'Unknown'));
     } finally { c.release(); }
   };
 
