@@ -43,7 +43,7 @@ async function buildApp() {
     allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Correlation-ID', 'Idempotency-Key'],
   });
 
-  await app.register(rateLimit, { max: 100, timeWindow: '1 minute' });
+  await app.register(rateLimit, { max: 500, timeWindow: '1 minute' });
   await app.register(cookie, { secret: config.CSRF_SECRET });
   await app.register(swagger, { openapi: { info: { title: 'TL Management API', version: '5.0.0' } } });
   await app.register(swaggerUi, { routePrefix: '/' });

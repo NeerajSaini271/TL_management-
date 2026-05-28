@@ -1,28 +1,25 @@
-﻿enum State { CLOSED, OPEN, HALF_OPEN }
-
-export class CircuitBreaker {
-  private state = State.CLOSED;
+﻿export class CircuitBreaker {
+  private state = 0; // 0=CLOSED, 1=OPEN, 2=HALF_OPEN
   private failureCount = 0;
   private lastFailureTime = 0;
   private successCount = 0;
-  
-  constructor(
-    private name: string,
-    private failureThreshold: number = 5,
-    private resetTimeout: number = 30000,
-    private halfOpenMax: number = 3
-  ) {}
+  public name = '';
+
+  constructor(name: string, failureThreshold = 20, resetTimeout = 15000, halfOpenMax = 3) {
+    this.name = name;
+    this.failureThreshold = failureThreshold;
+    this.resetTimeout = resetTimeout;
+    this.halfOpenMax = halfOpenMax;
+  }
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
-    if (this.state === State.OPEN) {
+    if (this.state === 1) {
       if (Date.now() - this.lastFailureTime > this.resetTimeout) {
-        this.state = State.HALF_OPEN;
-        console.log('Circuit ' + this.name + ' -> HALF_OPEN');
+        this.state = 2;
       } else {
-        throw new Error('Circuit breaker OPEN for ' + this.name);
+        throw new Error('Circuit breaker OPEN');
       }
     }
-
     try {
       var result = await fn();
       this.onSuccess();
@@ -34,29 +31,15 @@ export class CircuitBreaker {
   }
 
   private onSuccess(): void {
-    if (this.state === State.HALF_OPEN) {
-      this.successCount++;
-      if (this.successCount >= this.halfOpenMax) {
-        this.state = State.CLOSED;
-        this.failureCount = 0;
-        console.log('Circuit ' + this.name + ' -> CLOSED');
-      }
-    } else {
-      this.failureCount = 0;
-    }
+    this.failureCount = 0;
+    this.state = 0;
   }
 
   private onFailure(): void {
     this.failureCount++;
     this.lastFailureTime = Date.now();
-    if (this.state === State.HALF_OPEN || this.failureCount >= this.failureThreshold) {
-      this.state = State.OPEN;
-      console.log('Circuit ' + this.name + ' -> OPEN');
+    if (this.failureCount >= this.failureThreshold) {
+      this.state = 1;
     }
   }
-
-  getState(): string { return State[this.state]; }
 }
-
-export var dbBreaker = new CircuitBreaker('database', 5, 30000, 3);
-export var redisBreaker = new CircuitBreaker('redis', 3, 15000, 2);

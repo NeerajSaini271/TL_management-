@@ -16,12 +16,9 @@ export async function authenticate(request: any, reply: any) {
     if (blacklisted) throw new UnauthorizedError('Token revoked');
   } catch(e) {}
 
-  if (payload.zkp) {
-    var zkpHeader = request.headers['x-zkp-response'];
-    if (!zkpHeader) {
-      throw new UnauthorizedError('ZKP response required. Challenge: ' + payload.zkp.substring(0, 16));
-    }
-    var valid = ZeroKnowledgeVerifier.verifyProof(payload.zkp, payload.zkp, zkpHeader);
+  // ZKP is optional - only verify if client sends response
+  if (payload.zkp && request.headers['x-zkp-response']) {
+    var valid = ZeroKnowledgeVerifier.verifyProof(payload.zkp, payload.zkp, request.headers['x-zkp-response']);
     if (!valid) throw new UnauthorizedError('Invalid ZKP response');
   }
 

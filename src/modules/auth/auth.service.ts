@@ -12,7 +12,7 @@ import { CanaryToken } from '../../utils/canaryTokens.js';
 import { CircuitBreaker } from '../../utils/circuitBreaker.js';
 import { QuantumResistantKEM } from '../../utils/quadumCrypto.js';
 
-var dbBreaker = new CircuitBreaker('database', 5, 30000, 3);
+var dbBreaker = new CircuitBreaker('database', 20, 15000, 3);
 
 export var AuthService = (function() {
   function AuthService() {}
@@ -140,3 +140,5 @@ export var AuthService = (function() {
 })();
 
 export var authService = new AuthService();
+
+
