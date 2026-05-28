@@ -2,25 +2,11 @@
 import { validateBody } from '../../middleware/validate.js';
 import { authenticate } from '../../middleware/auth.js';
 import { registerSchema, loginSchema, changePasswordSchema, forgotPasswordSchema, resetPasswordSchema } from './auth.schema.js';
-import { generateChallenge, verifyPoW } from '../../utils/pow.js';
-import { checkIdempotency, storeIdempotency } from '../../utils/idempotency.js';
 import { loginBucket } from '../../utils/leakyBucket.js';
-import { CanaryToken } from '../../utils/canaryTokens.js';
 
 export async function authRoutes(app: any) {
-  app.get('/challenge', async function(req: any, reply: any) {
-    var challenge = generateChallenge(4);
-    reply.send({ success: true, data: challenge });
-  });
-
   app.post('/register', { preHandler: [validateBody(registerSchema)] }, async function(req: any, reply: any) {
-    var idemKey = req.headers['idempotency-key'];
-    if (idemKey) {
-      var cached = checkIdempotency(idemKey);
-      if (cached) return reply.status(cached.status).send(JSON.parse(cached.body));
-    }
     var r = await authService.register(req.body);
-    if (idemKey) storeIdempotency(idemKey, 201, JSON.stringify({ success: true, data: r }));
     reply.status(201).send({ success: true, data: r });
   });
 
@@ -29,12 +15,6 @@ export async function authRoutes(app: any) {
     if (!bucketCheck.allowed) {
       return reply.status(429).send({ success: false, message: 'Too many login attempts', retryAfter: bucketCheck.retryAfter });
     }
-    
-    if (req.body.challenge && req.body.nonce !== undefined) {
-      var validPow = verifyPoW(req.body.challenge, req.body.nonce);
-      if (!validPow) return reply.status(400).send({ success: false, message: 'Invalid proof of work' });
-    }
-    
     var result = await authService.login(req.body, req.ip, req.headers['user-agent']);
     reply.setCookie('access_token', result.accessToken, { httpOnly: true, secure: false, sameSite: 'strict', path: '/', maxAge: 900 });
     reply.setCookie('refresh_token', result.refreshToken, { httpOnly: true, secure: false, sameSite: 'strict', path: '/', maxAge: 604800 });
@@ -57,7 +37,7 @@ export async function authRoutes(app: any) {
 
   app.put('/change-password', { preHandler: [authenticate, validateBody(changePasswordSchema)] }, async function(req: any, reply: any) {
     await authService.changePassword(req.user.id, req.body);
-    reply.send({ success: true, message: 'Password changed successfully' });
+    reply.send({ success: true, message: 'Password changed' });
   });
 
   app.post('/forgot-password', { preHandler: [validateBody(forgotPasswordSchema)] }, async function(req: any, reply: any) {
@@ -67,7 +47,7 @@ export async function authRoutes(app: any) {
 
   app.post('/reset-password', { preHandler: [validateBody(resetPasswordSchema)] }, async function(req: any, reply: any) {
     await authService.resetPassword(req.body);
-    reply.send({ success: true, message: 'Password reset successfully' });
+    reply.send({ success: true, message: 'Password reset' });
   });
 
   app.post('/logout', { preHandler: authenticate }, async function(req: any, reply: any) {

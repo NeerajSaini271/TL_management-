@@ -21,12 +21,33 @@ import { auditRoutes } from './modules/audit/audit.routes.js';
 
 async function buildApp() {
   var app = Fastify({ logger: { level: 'info', transport: { target: 'pino-pretty' } } });
-  await app.register(helmet, { contentSecurityPolicy: false });
-  await app.register(cors, { origin: true, credentials: true });
-  await app.register(rateLimit, { max: 200, timeWindow: '1 minute' });
+
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", "data:"],
+      }
+    },
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+    crossOriginResourcePolicy: { policy: "same-origin" },
+  });
+
+  await app.register(cors, {
+    origin: ['http://localhost:3000', 'http://localhost:5000'],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-API-Key', 'X-Correlation-ID', 'Idempotency-Key'],
+  });
+
+  await app.register(rateLimit, { max: 100, timeWindow: '1 minute' });
   await app.register(cookie, { secret: config.CSRF_SECRET });
-  await app.register(swagger, { openapi: { info: { title: 'TL Management API', version: '5.0.0', description: 'Enterprise Backend with Military-Grade Security' } } });
+  await app.register(swagger, { openapi: { info: { title: 'TL Management API', version: '5.0.0' } } });
   await app.register(swaggerUi, { routePrefix: '/' });
+
   app.setErrorHandler(errorHandler);
 
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
@@ -51,7 +72,7 @@ async function buildApp() {
 
 async function start() {
   var app = await buildApp();
-  try { await app.listen({ port: config.PORT, host: '0.0.0.0' }); console.log('API Server: http://localhost:' + config.PORT); }
+  try { await app.listen({ port: config.PORT, host: '0.0.0.0' }); console.log('Server: http://localhost:' + config.PORT); }
   catch(err) { console.error(err); process.exit(1); }
 }
 start();
