@@ -48,7 +48,14 @@ async function buildApp() {
   await app.register(swagger, { openapi: { info: { title: 'TL Management API', version: '5.0.0' } } });
   await app.register(swaggerUi, { routePrefix: '/' });
 
-  app.setErrorHandler(errorHandler);
+  app.setErrorHandler(async function(error: any, request: any, reply: any) {
+    request.log.error({ err: error, body: request.body, url: request.url, method: request.method }, 'Request error');
+    var statusCode = error.statusCode || 500;
+    var message = error.message || 'Internal server error';
+    if (error.validation) { statusCode = 400; message = error.message; }
+    if (error.code === 'FST_ERR_CTP_INVALID_MEDIA_TYPE') { statusCode = 415; message = 'Unsupported Media Type'; }
+    reply.status(statusCode).send({ success: false, message: message, code: error.code || 'UNKNOWN' });
+  });
 
   await app.register(authRoutes, { prefix: '/api/v1/auth' });
   await app.register(mfaRoutes, { prefix: '/api/v1/mfa' });
@@ -76,3 +83,4 @@ async function start() {
   catch(err) { console.error(err); process.exit(1); }
 }
 start();
+

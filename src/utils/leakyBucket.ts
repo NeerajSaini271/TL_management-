@@ -1,15 +1,11 @@
 ﻿export class LeakyBucket {
   private buckets = new Map<string, { water: number; lastLeak: number }>();
   
-  constructor(
-    private capacity: number = 10,
-    private leakRatePerSecond: number = 1
-  ) {}
+  constructor(private capacity: number = 50, private leakRatePerSecond: number = 10) {}
 
   allow(key: string): { allowed: boolean; remaining: number; retryAfter?: number } {
     var now = Date.now();
     var bucket = this.buckets.get(key) || { water: 0, lastLeak: now };
-    
     var elapsed = (now - bucket.lastLeak) / 1000;
     bucket.water = Math.max(0, bucket.water - elapsed * this.leakRatePerSecond);
     bucket.lastLeak = now;
@@ -27,5 +23,5 @@
   reset(key: string): void { this.buckets.delete(key); }
 }
 
-export var loginBucket = new LeakyBucket(5, 0.05);
-export var apiBucket = new LeakyBucket(50, 2);
+export var loginBucket = new LeakyBucket(50, 10);
+export var apiBucket = new LeakyBucket(200, 20);
