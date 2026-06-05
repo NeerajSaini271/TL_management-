@@ -7,14 +7,9 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "db:migrate": "pnpm prisma migrate deploy",
-    "db:generate": "pnpm prisma generate",
-    "db:seed": "tsx prisma/seed.ts",
-    "db:studio": "pnpm prisma studio",
     "lint": "eslint src --ext .ts",
     "format": "prettier --write .",
-    "test": "vitest run",
-    "prepare": "pnpm prisma generate"
+    "test": "vitest run"
   },
   "dependencies": {
     "@fastify/cookie": "^11.0.1",

@@ -11,8 +11,8 @@ try {
   var ap = await argon2.hash('Admin@123!');
   var tp = await argon2.hash('TL@123!');
   var ep = await argon2.hash('Employee@123!');
-  await c.query('INSERT INTO users (email, password_hash, name, role, department) VALUES (,,,,)', ['admin@company.com', ap, 'Admin', 'ADMIN', 'Engineering']);
-  await c.query('INSERT INTO users (email, password_hash, name, role, department) VALUES (,,,,)', ['tl@company.com', tp, 'TL', 'TL', 'Product']);
-  await c.query('INSERT INTO users (email, password_hash, name, role, department) VALUES (,,,,)', ['employee@company.com', ep, 'Employee', 'EMPLOYEE', 'Product']);
+  await c.query('INSERT INTO users (email, password_hash, name, role, department) VALUES ($1, $2, $3, $4, $5)', ['admin@company.com', ap, 'Admin', 'ADMIN', 'Engineering']);
+  await c.query('INSERT INTO users (email, password_hash, name, role, department) VALUES ($1, $2, $3, $4, $5)', ['tl@company.com', tp, 'TL', 'TL', 'Product']);
+  await c.query('INSERT INTO users (email, password_hash, name, role, department) VALUES ($1, $2, $3, $4, $5)', ['employee@company.com', ep, 'Employee', 'EMPLOYEE', 'Product']);
   console.log('Setup complete!');
 } finally { c.release(); process.exit(0); }
